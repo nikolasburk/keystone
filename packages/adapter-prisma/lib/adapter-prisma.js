@@ -22,12 +22,13 @@ class PrismaAdapter extends BaseKeystoneAdapter {
     const { PrismaClient } = require(this.clientPath);
     this.prisma = new PrismaClient({
       log: this.enableLogging && ['query'],
-      datasources: { postgresql: { url: this._url() } },
+      datasources: { sqlite: { url: this._url() } },
     });
     await this.prisma.$connect();
   }
 
   _url() {
+    return 'file:./dev.db';
     // By default we put `schema=public` onto all `DATABASE_URL` values.
     // If this isn't what a user wants, they can update `getSchemaName` to return either
     // a different dbSchemaName, or null if they just want to use the DATABASE_URL as it is.
@@ -175,9 +176,9 @@ class PrismaAdapter extends BaseKeystoneAdapter {
     );
 
     const header = `
-      datasource postgresql {
+      datasource sqlite {
         url      = env("DATABASE_URL")
-        provider = "postgresql"
+        provider = "sqlite"
       }
       generator client {
         provider = "prisma-client-js"
@@ -200,25 +201,25 @@ class PrismaAdapter extends BaseKeystoneAdapter {
   // This will drop all the tables in the backing database. Use wisely.
   async dropDatabase() {
     let migrationNeeded = true;
-    for (const { tablename } of await this.prisma.$queryRaw(
-      `SELECT tablename FROM pg_tables WHERE schemaname='${this.dbSchemaName}'`
-    )) {
-      if (tablename.includes('_Migration')) {
-        migrationNeeded = false;
-      }
-      await this.prisma.$queryRaw(
-        `TRUNCATE TABLE \"${this.dbSchemaName}\".\"${tablename}\" CASCADE;`
-      );
-    }
-    for (const { relname } of await this.prisma.$queryRaw(
-      `SELECT c.relname FROM pg_class AS c JOIN pg_namespace AS n ON c.relnamespace = n.oid WHERE c.relkind='S' AND n.nspname='${this.dbSchemaName}';`
-    )) {
-      if (!relname.includes('_Migration')) {
-        await this.prisma.$queryRaw(
-          `ALTER SEQUENCE \"${this.dbSchemaName}\".\"${relname}\" RESTART WITH 1;`
-        );
-      }
-    }
+    // for (const { tablename } of await this.prisma.$queryRaw(
+    //   `SELECT tablename FROM pg_tables WHERE schemaname='${this.dbSchemaName}'`
+    // )) {
+    //   if (tablename.includes('_Migration')) {
+    //     migrationNeeded = false;
+    //   }
+    //   await this.prisma.$queryRaw(
+    //     `TRUNCATE TABLE \"${this.dbSchemaName}\".\"${tablename}\" CASCADE;`
+    //   );
+    // }
+    // for (const { relname } of await this.prisma.$queryRaw(
+    //   `SELECT c.relname FROM pg_class AS c JOIN pg_namespace AS n ON c.relnamespace = n.oid WHERE c.relkind='S' AND n.nspname='${this.dbSchemaName}';`
+    // )) {
+    //   if (!relname.includes('_Migration')) {
+    //     await this.prisma.$queryRaw(
+    //       `ALTER SEQUENCE \"${this.dbSchemaName}\".\"${relname}\" RESTART WITH 1;`
+    //     );
+    //   }
+    // }
 
     if (migrationNeeded) {
       this._saveMigration({ name: 'init' });
