@@ -201,16 +201,20 @@ class PrismaAdapter extends BaseKeystoneAdapter {
   // This will drop all the tables in the backing database. Use wisely.
   async dropDatabase() {
     let migrationNeeded = true;
-    // for (const { tablename } of await this.prisma.$queryRaw(
-    //   `SELECT tablename FROM pg_tables WHERE schemaname='${this.dbSchemaName}'`
-    // )) {
-    //   if (tablename.includes('_Migration')) {
-    //     migrationNeeded = false;
-    //   }
-    //   await this.prisma.$queryRaw(
-    //     `TRUNCATE TABLE \"${this.dbSchemaName}\".\"${tablename}\" CASCADE;`
-    //   );
-    // }
+    // console.log(this.prisma);
+    // console.log(await this.prisma.$queryRaw(`SELECT * FROM dev.sqlite_master`));
+    // console.log(await this.prisma.$queryRaw(`SELECT * FROM Company`));
+    // console.log(await this.prisma.$queryRaw(`SELECT * FROM Foo`));
+    for (const result of await this.prisma.$queryRaw(
+      `SELECT name FROM dev.sqlite_master WHERE type='table'`
+    )) {
+      // console.log({ result });
+      if (result.name.includes('_Migration')) {
+        migrationNeeded = false;
+      }
+      await this.prisma.$queryRaw(`DELETE FROM ${result.name}`);
+      // await this.prisma.$queryRaw(`TRUNCATE TABLE \"${this.dbSchemaName}\".\"${result.name}\" CASCADE;`);
+    }
     // for (const { relname } of await this.prisma.$queryRaw(
     //   `SELECT c.relname FROM pg_class AS c JOIN pg_namespace AS n ON c.relnamespace = n.oid WHERE c.relkind='S' AND n.nspname='${this.dbSchemaName}';`
     // )) {
