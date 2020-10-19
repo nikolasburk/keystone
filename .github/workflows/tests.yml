@@ -45,7 +45,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        index: [0, 1, 2, 3]
+        index: [0, 1, 2, 3, 4, 5, 6, 7, 8]
         adapter: ['mongoose','knex', 'prisma']
         node_version: ['10.x', '12.x']
     steps:
@@ -53,7 +53,7 @@ jobs:
         uses: actions/checkout@v2
         if: needs.should_run_tests.outputs.shouldRunTests == 'true'
 
-      - name: Setup Node.js 10.x
+      - name: Setup Node.js
         uses: actions/setup-node@main
         if: needs.should_run_tests.outputs.shouldRunTests == 'true'
         with:
@@ -87,7 +87,7 @@ jobs:
           CLOUDINARY_CLOUD_NAME: keystone-cloudinary
           CLOUDINARY_KEY: 758252673115372
           CLOUDINARY_SECRET: ${{ secrets.CLOUDINARY_SECRET }}
-          CI_NODE_TOTAL: 4
+          CI_NODE_TOTAL: 9
           CI_NODE_INDEX: ${{ matrix.index }}
           TEST_ADAPTER: ${{ matrix.adapter }}
           IFRAMELY_API_KEY: ${{ secrets.IFRAMELY_API_KEY }}
