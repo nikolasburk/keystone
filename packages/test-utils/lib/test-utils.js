@@ -185,7 +185,7 @@ function _after(tearDownFunction) {
   };
 }
 
-function multiAdapterRunners(only=process.env.TEST_ADAPTER) {
+function multiAdapterRunners(only = process.env.TEST_ADAPTER) {
   return [
     {
       runner: _keystoneRunner('mongoose', teardownMongoMemoryServer),
